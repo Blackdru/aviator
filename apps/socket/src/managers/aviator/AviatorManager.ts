@@ -6,6 +6,7 @@ import { prisma } from "../../lib/client";
 export interface Bid{
     userId: string,
     investedAmount: number,
+    betId: string,
     cashedOut: boolean,
     rate?: number
 }
@@ -47,6 +48,7 @@ class AviatorManager{
     public addBid(user: User, amount: number){
         const userId = user.userId;
         if(this.game.isRunning) return;
+        const roomId = this.game.roomId
         prisma.$transaction(async(tx) => {
             const wallet = await tx.wallet.findUnique({
                 where: {
@@ -68,11 +70,22 @@ class AviatorManager{
                         decrement: amount
                     }
                 }
-            }).then(() => {
-                const bid: Bid = {userId, investedAmount: amount, cashedOut: false}
-                this.game.biddings.set(userId, bid)
-                user.socket.emit("AVIATOR_BID_SUCCESS")
             })
+
+            const betId = createId();
+
+            await tx.bet.create({
+                data: {
+                    betId,
+                    userId,
+                    amount,
+                    roomId
+                }
+            })
+
+            const bet: Bid = {userId, investedAmount: amount, cashedOut: false, betId}
+            this.game.biddings.set(userId, bet)
+            user.socket.emit("AVIATOR_BID_SUCCESS")
 
         })
     }
@@ -83,9 +96,30 @@ class AviatorManager{
         const rate = this.game.getCurrentRate();
         const bid = this.game.biddings.get(user.userId);
         if(!bid) return;
-        bid.cashedOut = true;
-        bid.rate = rate
-        this.game.biddings.set(user.userId, bid);
+        this.game.biddings.delete(user.userId)
+        const winAmount = bid.investedAmount * rate;
+        prisma.$transaction(async(tx) => {
+            await tx.bet.update({
+                where: {
+                    betId: bid.betId
+                },
+                data: {
+                    cashout: true,
+                    cashoutValue: rate
+                }
+            })
+
+            await tx.wallet.update({
+                where: {
+                    userId: user.userId
+                },
+                data: {
+                    balance: {
+                        increment: winAmount
+                    }
+                }
+            })
+        })
     }
 }
 

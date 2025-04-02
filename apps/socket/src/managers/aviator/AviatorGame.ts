@@ -51,7 +51,7 @@ export class AviatorGame{
         }, this._waitingTime);
     }
 
-    public getRoomId(){
+    public get roomId(){
         return this._roomId;
     }
 
@@ -107,47 +107,40 @@ export class AviatorGame{
         return encrypted;
     }
     
-    private decryptAES(encryptedText: string) {
-        let decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(AES_KEY), Buffer.from(AES_IV));
-        let decrypted = decipher.update(encryptedText, "base64", "utf8");
-        decrypted += decipher.final("utf8");
-        return decrypted;
-    }
-    
     private generateHMAC(data: string) {
         return crypto.createHmac("sha256", SERVER_SECRET).update(data).digest("hex");
     }
 
 
     private endGame(){
-        const winners: WinRecord[] = []
-        for(const user of this.players.values()){
-            const bid = this._biddings.get(user.userId);
-            if(bid && bid.cashedOut){
-                const rate = bid.rate as number
-                const data: WinRecord =  {userId: user.userId, amount: bid.investedAmount * rate}
-                winners.push(data)
-            }
-        }
-        //store winners data to db.
-        winners.forEach(async(winner) => {
-            try {
-                await prisma.$transaction(async(tx) => {
-                    await tx.wallet.update({
-                        where: {
-                            userId: winner.userId
-                        },
-                        data: {
-                            balance: {
-                                increment: winner.amount
-                            }
-                        }
-                    })
-                })
-            } catch (error) {
-                console.log("Winner wallet not found");
-            }
-        });
+        // const winners: WinRecord[] = []
+        // for(const user of this.players.values()){
+        //     const bid = this._biddings.get(user.userId);
+        //     if(bid && bid.cashedOut){
+        //         const rate = bid.rate as number
+        //         const data: WinRecord =  {userId: user.userId, amount: bid.investedAmount * rate}
+        //         winners.push(data)
+        //     }
+        // }
+        // //store winners data to db.
+        // winners.forEach(async(winner) => {
+        //     try {
+        //         await prisma.$transaction(async(tx) => {
+        //             await tx.wallet.update({
+        //                 where: {
+        //                     userId: winner.userId
+        //                 },
+        //                 data: {
+        //                     balance: {
+        //                         increment: winner.amount
+        //                     }
+        //                 }
+        //             })
+        //         })
+        //     } catch (error) {
+        //         console.log("Winner wallet not found");
+        //     }
+        // });
         this._biddings = new Map();
         this._roomId = createId();
         this.initializeGame();
