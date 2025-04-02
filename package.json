@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "aviator-backend",
   "private": true,
   "scripts": {
     "build": "turbo run build",
