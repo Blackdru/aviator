@@ -73,6 +73,7 @@ class AviatorManager{
             })
 
             const betId = createId();
+            console.log(betId);
 
             await tx.bet.create({
                 data: {
@@ -119,7 +120,9 @@ class AviatorManager{
                     }
                 }
             })
-        })
+        });
+        const message = JSON.stringify({amount: winAmount});
+        user.socket.emit("AVIATOR_CASHOUT_SUCCESS", message);
     }
 }
 

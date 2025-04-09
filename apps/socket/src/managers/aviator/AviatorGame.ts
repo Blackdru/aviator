@@ -13,6 +13,8 @@ interface WinRecord {
     amount: number
 }
 
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
+
 export class AviatorGame{
     private _roomId: string;
     private _isRunning: boolean = false;
@@ -32,23 +34,30 @@ export class AviatorGame{
     private initializeGame(){
         const data = this._waitingTime.toString();
         this._rate = 1.00
-        for(const user of this.players.values()){
-            user.socket.emit("AVIATOR_WAITING", data)
-        }
-        this._startTime = performance.now()
-        setTimeout(() => {
-            // const maxRate = (Math.random() * (100.00 - 1.01) + 1.01).toFixed(2);
-            const rateString = this._maxRate.toString()
-            const encryptedRate = this.encryptAES(rateString);
-            const serverHash = this.generateHMAC(rateString); 
-            this._isRunning = true;
-            for(const user of this.players.values()){
-                const bid = this.biddings.get(user.userId)
-                const message = JSON.stringify({seed: encryptedRate, hash: serverHash, player: !!bid})
-                user.socket.emit("START_AVIATOR", message)
+        prisma.room.create({
+            data: {
+                roomId: this._roomId,
+                maxRate: this._maxRate
             }
-            this.startGame()
-        }, this._waitingTime);
+        }).then(() => {
+            for(const user of this.players.values()){
+                user.socket.emit("AVIATOR_WAITING", data)
+            }
+            this._startTime = performance.now()
+            setTimeout(() => {
+                // const maxRate = (Math.random() * (100.00 - 1.01) + 1.01).toFixed(2);
+                const rateString = this._maxRate.toString()
+                const encryptedRate = this.encryptAES(rateString);
+                const serverHash = this.generateHMAC(rateString); 
+                this._isRunning = true;
+                for(const user of this.players.values()){
+                    const bid = this.biddings.get(user.userId)
+                    const message = JSON.stringify({seed: encryptedRate, hash: serverHash, player: !!bid})
+                    user.socket.emit("START_AVIATOR", message)
+                }
+                this.startGame()
+            }, this._waitingTime);
+        })
     }
 
     public get roomId(){
@@ -113,36 +122,11 @@ export class AviatorGame{
 
 
     private endGame(){
-        // const winners: WinRecord[] = []
-        // for(const user of this.players.values()){
-        //     const bid = this._biddings.get(user.userId);
-        //     if(bid && bid.cashedOut){
-        //         const rate = bid.rate as number
-        //         const data: WinRecord =  {userId: user.userId, amount: bid.investedAmount * rate}
-        //         winners.push(data)
-        //     }
-        // }
-        // //store winners data to db.
-        // winners.forEach(async(winner) => {
-        //     try {
-        //         await prisma.$transaction(async(tx) => {
-        //             await tx.wallet.update({
-        //                 where: {
-        //                     userId: winner.userId
-        //                 },
-        //                 data: {
-        //                     balance: {
-        //                         increment: winner.amount
-        //                     }
-        //                 }
-        //             })
-        //         })
-        //     } catch (error) {
-        //         console.log("Winner wallet not found");
-        //     }
-        // });
         this._biddings = new Map();
         this._roomId = createId();
-        this.initializeGame();
+        delay(2000).then(() => {
+            this._isRunning = false;
+            this.initializeGame();
+        })
     }
 }
