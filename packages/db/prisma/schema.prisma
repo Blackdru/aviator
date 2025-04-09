@@ -22,6 +22,7 @@ model User {
   suspended Boolean @default(false)
   wallet    Wallet?
   bets Bet[]
+  payments Payments[]
 }
 
 model Wallet {
@@ -44,10 +45,33 @@ model Bet{
   roomId String
   room Room @relation(fields: [roomId], references: [roomId])
   userId String
-  user User @relation(fields: [userId], references: [userId])
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   amount Float
   cashout Boolean @default(false)
   cashoutValue Float?
+}
+
+model Payments{
+  paymentId String @id @default(cuid())
+  amount Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId String
+  user User @relation(fields: [userId], references: [userId])
+  paymentStatus PaymentStatus @default(Pending)
+  currency String @default("INR")
+  paymentType PaymentType
+}
+
+enum PaymentType {
+  Deposit
+  Withdraw
+}
+
+enum PaymentStatus {
+  Pending
+  Success
+  Failed
 }
 
 
