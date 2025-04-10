@@ -2,7 +2,6 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/client';
 import { validateUser } from '../zod/userValidator';
-import { validateAdmin } from '../zod/adminValidator';
 import { authenticateToken, UserRequest, verifyAdmin } from '../middleware/verifyUser';
 
 const router = express.Router();

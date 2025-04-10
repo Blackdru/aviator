@@ -2,6 +2,8 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
 import userRouter from './routes/user'
+import paymentRouter from './routes/payments'
+import withdrawRouter from './routes/withdrawls'
 
 dotenv.config()
 
@@ -17,6 +19,8 @@ app.get("/",(_, res)=>{
 })
 
 app.use('/api/user',userRouter);
+app.use('/api/payments', paymentRouter);
+app.use('/api/withdrawls', withdrawRouter);
 
 const PORT = process.env.PORT || 3001
 

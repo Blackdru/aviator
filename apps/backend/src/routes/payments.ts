@@ -5,28 +5,30 @@ import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/client';
 import crypto from 'crypto'
 import { createPaymentSchema } from '../zod/paymentValidator';
+import { authenticateToken, UserRequest } from '../middleware/verifyUser';
 
 const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZR_KEY!,
-    key_secret: process.env.RAZR_SECRET!,
+    key_id: 'rzp_test_ILhEsA5oxLGYj5',
+    key_secret: 'eb0oOIIO5da9NVCwSL5RHqMU',
 });
 
 const router = Router()
 
 
-router.post('/create',  async(req, res) => {
+router.post('/create', authenticateToken,  async(req: UserRequest, res) => {
     try {
-        const token = req.headers['authorization'];
-        if (!token) {
-            return res.status(401).send('Unauthorized token'); // Unauthorized
+        const authUser = req.user
+        if(!authUser){
+            return res.status(401).json({message: 'Unauthorized'})
         }
-  
-        const data = jwt.verify(token, process.env.JWT_SECRET || "secret");
-        const { userId }: any = data;
-  
+        const {userId} = authUser
+
         const user = await prisma.user.findUnique({
             where: {
                 userId
+            },
+            select: {
+              userId: true
             }
         });
   
@@ -39,7 +41,7 @@ router.post('/create',  async(req, res) => {
             return res.status(400).json({ message: isValidPaymentCreation.error.message });
         }
 
-        const {amount, paymentType} = isValidPaymentCreation.data
+        const {amount} = isValidPaymentCreation.data
   
         // Razorpay order options
         const options = {
@@ -56,7 +58,6 @@ router.post('/create',  async(req, res) => {
                 userId,
                 amount: Number(order.amount),
                 currency: order.currency,
-                paymentType
             },
         });
   
@@ -108,4 +109,6 @@ router.post('/create',  async(req, res) => {
       console.error('Error updating transaction:', error);
       res.status(500).json({ message: 'Error updating transaction', error });
     }
-  });
+});
+
+export default router;

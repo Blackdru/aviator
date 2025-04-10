@@ -23,7 +23,22 @@ model User {
   wallet    Wallet?
   bets Bet[]
   payments Payments[]
+  withdrawls Withdrawals[]
 }
+
+model Admin{
+  adminId  String @id @default(cuid())
+  adminName String
+  email String @unique
+  password String
+  role AdminRole @default(admin)
+}
+
+enum AdminRole {
+  admin
+  superadmin
+}
+
 
 model Wallet {
   walletId  String   @id @default(cuid())
@@ -60,13 +75,34 @@ model Payments{
   user User @relation(fields: [userId], references: [userId])
   paymentStatus PaymentStatus @default(Pending)
   currency String @default("INR")
-  paymentType PaymentType
 }
 
-enum PaymentType {
-  Deposit
-  Withdraw
+
+
+
+model Withdrawals{
+  withdrawlId String @id @default(cuid())
+  amount Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  paymentStatus PaymentStatus @default(Pending)
+  currency String @default("INR")
+  withdrawType WithdrawType
+  userId String
+  username String
+  user User @relation(fields: [userId], references: [userId])
+  accountNumber String?
+  ifsc String?
+  upi String?
+  cryptoId String?
 }
+
+enum WithdrawType {
+  Bank
+  UPI
+  Crypto
+}
+
 
 enum PaymentStatus {
   Pending
