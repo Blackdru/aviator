@@ -49,6 +49,7 @@ class AviatorManager{
         const userId = user.userId;
         if(this.game.isRunning) return;
         const roomId = this.game.roomId
+        const maxRate = this.game.maxRate;
         prisma.$transaction(async(tx) => {
             const wallet = await tx.wallet.findUnique({
                 where: {
@@ -73,7 +74,20 @@ class AviatorManager{
             })
 
             const betId = createId();
-            console.log(betId);
+
+            const room = await tx.room.findUnique({
+                where: {
+                    roomId
+                }
+            });
+            if(!room){
+                await tx.room.create({
+                    data: {
+                        roomId,
+                        maxRate
+                    }
+                })
+            }
 
             await tx.bet.create({
                 data: {

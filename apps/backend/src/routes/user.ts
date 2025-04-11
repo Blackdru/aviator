@@ -196,6 +196,8 @@ router.put('/suspend/:userId', verifyAdmin, async(req, res) => {
 })
 
 
+
+
 // router.get('/profile', authenticateToken, async(req: UserRequest, res) => {
 //     try {
 //         const {userId} = req.user!;

@@ -111,4 +111,84 @@ router.post('/create', authenticateToken,  async(req: UserRequest, res) => {
     }
 });
 
+interface Transaction{
+  id: string,
+  amount: number,
+  createdAt: Date,
+  updatedAt: Date,
+  paymentStatus: "Pending" | "Success" | "Failed",
+  type: "Withdraw" | "Deposit"
+}
+
+router.get('/fetchallpayments', authenticateToken, async(req: UserRequest, res) => {
+  try {
+    const authUser = req.user
+        if(!authUser){
+            return res.status(401).json({message: 'Unauthorized'})
+        }
+        const {userId} = authUser
+
+        const user = await prisma.user.findUnique({
+            where: {
+                userId
+            },
+            select: {
+              userId: true,
+              payments: {
+                select: {
+                  paymentId: true,
+                  amount: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  paymentStatus: true
+                }
+              },
+              withdrawls: {
+                select: {
+                  withdrawlId: true,
+                  amount: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  paymentStatus: true
+                }
+              }
+            }
+        });
+  
+        if (!user) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const data: Transaction[] = []
+        user.payments.forEach((payment) => {
+            data.push({
+                id: payment.paymentId,
+                amount: payment.amount,
+                createdAt: payment.createdAt,
+                updatedAt: payment.updatedAt,
+                paymentStatus: payment.paymentStatus,
+                type: "Deposit"
+            })
+        })
+
+        user.withdrawls.forEach((withdrawl) => {
+            data.push({
+                id: withdrawl.withdrawlId,
+                amount: withdrawl.amount,
+                createdAt: withdrawl.createdAt,
+                updatedAt: withdrawl.updatedAt,
+                paymentStatus: withdrawl.paymentStatus,
+                type: "Withdraw"
+            })
+        })
+
+        const sortedTransactions = data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+        return res.status(200).json({data: sortedTransactions})
+
+  } catch (error) {
+    return res.status(500).json({message: 'Internal server error'})
+  }
+})
+
 export default router;
