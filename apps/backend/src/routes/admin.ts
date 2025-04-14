@@ -3,6 +3,7 @@ import { createAdminSchema, loginAdminSchema } from "../zod/adminValidator";
 import { prisma } from "../lib/client";
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { verifyAdmin } from "../middleware/verifyUser";
 
 
 const router = Router();
@@ -32,7 +33,8 @@ router.post('/create', async(req, res) => {
             data: {
                 adminName: name,
                 email: email,
-                password: hashedPassword
+                password: hashedPassword,
+                role: role ?? "admin"
             }
         });
         return res.status(200).json({message: "Admin created successfully"})
@@ -79,6 +81,16 @@ router.post('/login', async(req, res) => {
         return res.status(500).json({message: "Internal server error"})
     }
 });
+
+
+router.get('/admins', verifyAdmin, async(_, res) => {
+    try {
+        const admins = await prisma.admin.findMany();
+        res.status(200).json({admins})
+    } catch (error) {
+        res.status(500).json({message: "Internal server error"})
+    }
+})
 
 
 export default router

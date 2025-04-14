@@ -15,9 +15,7 @@ app.use(cors())
 
 app.use(express.json());
 
-app.get("/",(_, res)=>{
-    res.send("Hello user");
-})
+
 
 app.use('/api/user',userRouter);
 app.use('/api/payments', paymentRouter);

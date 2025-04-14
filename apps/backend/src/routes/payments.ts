@@ -1,7 +1,6 @@
 
 import Razorpay from 'razorpay'
 import { Router } from 'express';
-import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/client';
 import crypto from 'crypto'
 import { createPaymentSchema } from '../zod/paymentValidator';

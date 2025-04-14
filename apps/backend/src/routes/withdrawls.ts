@@ -86,6 +86,35 @@ router.post('/create', authenticateToken, async(req: UserRequest, res) => {
     }
 })
 
+router.get('/fetchall', verifyAdmin, async(_, res) => {
+    try {
+        const withdrawals = await prisma.withdrawals.findMany({
+            where: {
+                paymentStatus: "Pending"
+            },
+            select: {
+                withdrawlId: true,
+                paymentStatus: true,
+                amount: true,
+                accountNumber: true,
+                ifsc: true,
+                upi: true,
+                cryptoId: true,
+                createdAt: true,
+                user: {
+                    select: {
+                        userId: true,
+                        username: true
+                    }
+                }
+            }
+        });
+        return res.status(200).json({withdrawals})
+    } catch (error) {
+        return res.status(500).json({message: "Internal server error"})
+    }
+});
+
 router.put('/update/:withdrawId', verifyAdmin, async(req, res) => {
     try {
         const withdrawlId = req.params.withdrawId;

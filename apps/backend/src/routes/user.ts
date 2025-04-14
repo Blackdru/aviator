@@ -175,6 +175,35 @@ router.put('/resendotp', async(req, res) => {
     }
 })
 
+
+router.get('/fetchall', verifyAdmin, async(_, res) => {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                userId: true,
+                username: true,
+                mobile: true,
+                suspended: true,
+                wallet: {
+                    select: {
+                        balance: true
+                    }
+                },
+                bets: {
+                    select: {
+                        betId: true,
+                        amount: true,
+                        cashoutValue: true
+                    }
+                }
+            }
+        });
+        return res.status(200).json({users})
+    } catch (error) {
+        return res.status(500).json({message: 'Internal server error'})
+    }
+})
+
 router.put('/suspend/:userId', verifyAdmin, async(req, res) => {
     try {
         const userId = req.params.userId;
@@ -196,43 +225,7 @@ router.put('/suspend/:userId', verifyAdmin, async(req, res) => {
 })
 
 
-// router.get('/profile', authenticateToken, async(req: UserRequest, res) => {
-//     try {
-//         const {userId} = req.user!;
-//         const user = await prisma.user.findUnique({
-//             where: {
-//                 userId
-//             },
-//             select: {
-//                 username: true,
-//                 mobile: true,
-//                 _count: {
-//                     select: {
-//                         winnings: true,
-//                         rooms: true
-//                     }
-//                 }
-//             }
-//         });
-//         if(!user) return res.status(400).json({message: 'User not found'})
-//         return res.status(200).json({user: {username: user.username, mobile: user.mobile, totalMatches: user._count.rooms, matchesWon: user._count.winnings}})
-//     } catch (error) {
-//         return res.status(500).json({message: 'Internal server error'})
-//     }
-// })
 
-// router.get("/fetchallotp", async(req, res) => {
-//     try {
-//         const data = await prisma.user.findMany({
-//             select: {
-//                 mobile: true,
-//                 otp: true,
-//             }
-//         });
-//         return res.status(200).json({data});
-//     } catch (error) {
-//         return res.status(500).json({data: []})
-//     }
-// })
+
 
 export default router;

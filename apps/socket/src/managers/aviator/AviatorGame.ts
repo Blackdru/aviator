@@ -8,10 +8,7 @@ const AES_KEY = Buffer.from(process.env.AES_KEY!, 'hex');
 const AES_IV = Buffer.from(process.env.AES_IV!, 'hex');
 const SERVER_SECRET = process.env.SERVER_SECRET!
 
-interface WinRecord {
-    userId: string,
-    amount: number
-}
+
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
 
@@ -68,9 +65,7 @@ export class AviatorGame{
         if (this._interval) return; // Prevent multiple intervals
     
         this._interval = setInterval(() => {
-            console.log(this._rate);
             if (this._rate >= this._maxRate) {
-                console.log("max rate reached" + this._rate)
                 clearInterval(this._interval!);
                 this._interval = null; // Reset interval
                 this.endGame()
