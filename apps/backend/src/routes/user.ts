@@ -225,35 +225,7 @@ router.put('/suspend/:userId', verifyAdmin, async(req, res) => {
 })
 
 
-<<<<<<< HEAD
-=======
 
-
-// router.get('/profile', authenticateToken, async(req: UserRequest, res) => {
-//     try {
-//         const {userId} = req.user!;
-//         const user = await prisma.user.findUnique({
-//             where: {
-//                 userId
-//             },
-//             select: {
-//                 username: true,
-//                 mobile: true,
-//                 _count: {
-//                     select: {
-//                         winnings: true,
-//                         rooms: true
-//                     }
-//                 }
-//             }
-//         });
-//         if(!user) return res.status(400).json({message: 'User not found'})
-//         return res.status(200).json({user: {username: user.username, mobile: user.mobile, totalMatches: user._count.rooms, matchesWon: user._count.winnings}})
-//     } catch (error) {
-//         return res.status(500).json({message: 'Internal server error'})
-//     }
-// })
->>>>>>> 15670dffbd49baa5d938c28bec500b6171779aba
 
 
 
