@@ -30,10 +30,7 @@ class UserManager {
     }
 
     private addAviatorListener(user: User) {
-        user.socket.on("INIT_AVIATOR_GAME", () => {
-            aviatorManager.addPlayer(user);
-        });
-
+        aviatorManager.addPlayer(user);
         user.socket.on("ADD_AVIATOR_BID", (data) => {
             console.log(data);
             const amount = parseInt(data);

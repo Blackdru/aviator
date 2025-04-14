@@ -2,7 +2,6 @@ import { createId } from "@paralleldrive/cuid2";
 import { Bid } from "./AviatorManager";
 import { User } from "../users/User";
 import crypto from 'crypto'
-import { prisma } from "../../lib/client";
 
 const AES_KEY = Buffer.from(process.env.AES_KEY!, 'hex');
 const AES_IV = Buffer.from(process.env.AES_IV!, 'hex');
@@ -31,34 +30,32 @@ export class AviatorGame{
     private initializeGame(){
         const data = this._waitingTime.toString();
         this._rate = 1.00
-        prisma.room.create({
-            data: {
-                roomId: this._roomId,
-                maxRate: this._maxRate
-            }
-        }).then(() => {
+        for(const user of this.players.values()){
+            user.socket.emit("AVIATOR_WAITING", data)
+        }
+        this._startTime = performance.now()
+        setTimeout(() => {
+            // const maxRate = (Math.random() * (100.00 - 1.01) + 1.01).toFixed(2);
+            const rateString = this._maxRate.toString()
+            const encryptedRate = this.encryptAES(rateString);
+            const serverHash = this.generateHMAC(rateString); 
+            this._isRunning = true;
             for(const user of this.players.values()){
-                user.socket.emit("AVIATOR_WAITING", data)
+                const bid = this.biddings.get(user.userId)
+                const message = JSON.stringify({seed: encryptedRate, hash: serverHash, player: !!bid})
+                user.socket.emit("START_AVIATOR", message)
             }
-            this._startTime = performance.now()
-            setTimeout(() => {
-                // const maxRate = (Math.random() * (100.00 - 1.01) + 1.01).toFixed(2);
-                const rateString = this._maxRate.toString()
-                const encryptedRate = this.encryptAES(rateString);
-                const serverHash = this.generateHMAC(rateString); 
-                this._isRunning = true;
-                for(const user of this.players.values()){
-                    const bid = this.biddings.get(user.userId)
-                    const message = JSON.stringify({seed: encryptedRate, hash: serverHash, player: !!bid})
-                    user.socket.emit("START_AVIATOR", message)
-                }
-                this.startGame()
-            }, this._waitingTime);
-        })
+            this.startGame()
+        }, this._waitingTime);
     }
 
     public get roomId(){
         return this._roomId;
+    }
+
+
+    public get maxRate(){
+        return this._maxRate
     }
 
     private startGame() {
