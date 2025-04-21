@@ -5,6 +5,7 @@ import { prisma } from '../lib/client';
 import crypto from 'crypto'
 import { createPaymentSchema } from '../zod/paymentValidator';
 import { authenticateToken, UserRequest } from '../middleware/verifyUser';
+import z from 'zod'
 
 const razorpayInstance = new Razorpay({
     key_id: 'rzp_test_ILhEsA5oxLGYj5',
@@ -214,6 +215,41 @@ router.get('/fetchbalance', authenticateToken, async(req: UserRequest, res) => {
       return res.status(200).json({balance: user.wallet.balance})
   } catch (error) {
       return res.status(500).json({message: "Internal server error"})
+  }
+})
+
+
+router.get('/fetchtransactionDetails', authenticateToken, async(req: UserRequest, res) => {
+  try {
+    const authUser = req.user
+      if(!authUser){
+          return res.status(401).json({message: 'Unauthorized'})
+      }
+      const {userId} = authUser;
+      const isVlidFetch = z.object({
+        orderId: z.string()
+      }).safeParse(req.body)
+      if(!isVlidFetch.success){
+          return res.status(400).json({message: 'Invalid data'})
+      }
+      const payment = await prisma.payments.findUnique({
+        where: {
+          paymentId: isVlidFetch.data.orderId
+        },
+        select: {
+          paymentStatus: true,
+          userId: true
+        }
+      });
+      if(!payment){
+          return res.status(400).json({message: 'Payment not found'})
+      }
+      if(payment.userId !== userId){
+          return res.status(400).json({message: 'Unauthorized'})
+      }
+      return res.status(200).json({status: payment.paymentStatus})
+  } catch (error) {
+    return res.status(500).json({message: "Internal server error"})
   }
 })
 
