@@ -190,4 +190,31 @@ router.get('/fetchallpayments', authenticateToken, async(req: UserRequest, res) 
   }
 })
 
+router.get('/fetchbalance', authenticateToken, async(req: UserRequest, res) => {
+  try {
+      const authUser = req.user
+      if(!authUser){
+          return res.status(401).json({message: 'Unauthorized'})
+      }
+      const {userId} = authUser;
+      const user = await prisma.user.findUnique({
+          where: {
+              userId
+          },
+          select: {
+             wallet: true
+          }
+      });
+      if(!user){
+          return res.status(400).json({message: 'User not found'})  
+      }
+      if(!user.wallet){
+          return res.status(400).json({message: 'Wallet not found'})
+      }
+      return res.status(200).json({balance: user.wallet.balance})
+  } catch (error) {
+      return res.status(500).json({message: "Internal server error"})
+  }
+})
+
 export default router;
