@@ -34,6 +34,11 @@ model Admin{
   role AdminRole @default(admin)
 }
 
+model Banner {
+  bannerId String @id @default(cuid())
+  imageUrl String @db.Text
+}
+
 enum AdminRole {
   admin
   superadmin

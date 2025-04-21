@@ -225,8 +225,4 @@ router.put('/suspend/:userId', verifyAdmin, async(req, res) => {
 })
 
 
-
-
-
-
 export default router;

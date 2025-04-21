@@ -5,6 +5,7 @@ import userRouter from './routes/user'
 import paymentRouter from './routes/payments'
 import withdrawRouter from './routes/withdrawls'
 import adminRouter from './routes/admin'
+import bannerRouter from './routes/banner'
 
 dotenv.config()
 
@@ -20,7 +21,9 @@ app.use(express.json());
 app.use('/api/user',userRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/withdrawls', withdrawRouter);
-app.use('/api/admin', adminRouter)
+app.use('/api/admin', adminRouter);
+app.use('/api/banner', bannerRouter)
+
 
 const PORT = process.env.PORT || 3001
 

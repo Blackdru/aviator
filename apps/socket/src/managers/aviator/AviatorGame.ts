@@ -21,11 +21,33 @@ export class AviatorGame{
     private _startTime: number | null = null;
     private _maxRate: number;
     private _interval: NodeJS.Timeout | null = null;
+    private _lastScores = Array.from({ length: 10 }, () => 
+        parseFloat((Math.random() * 9 + 1).toFixed(2))
+      );
     constructor(roomId: string){
         this._roomId = roomId
-        this._maxRate = 5.36;
+        this._maxRate = this.getCrashMultiplier();
         this.initializeGame()
     }
+
+    private getCrashMultiplier() {
+        const rand = Math.random();
+      
+        if (rand < 0.7) {
+          // 70% chance for crash between 1.00 and 2.00
+          return parseFloat((Math.random() * 1 + 1).toFixed(2));
+        } else if (rand < 0.9) {
+          // 20% chance for crash between 2.01 and 5.00
+          return parseFloat((Math.random() * 2.99 + 2.01).toFixed(2));
+        } else if (rand < 0.98) {
+          // 8% chance for crash between 5.01 and 10.00
+          return parseFloat((Math.random() * 4.99 + 5.01).toFixed(2));
+        } else {
+          // 2% chance for crash between 10.01 and 50.00
+          return parseFloat((Math.random() * 39.99 + 10.01).toFixed(2));
+        }
+      }
+      
 
     private initializeGame(){
         const data = this._waitingTime.toString();
@@ -42,7 +64,7 @@ export class AviatorGame{
             this._isRunning = true;
             for(const user of this.players.values()){
                 const bid = this.biddings.get(user.userId)
-                const message = JSON.stringify({seed: encryptedRate, hash: serverHash, player: !!bid})
+                const message = JSON.stringify({seed: encryptedRate, hash: serverHash, player: !!bid, lastScores: this._lastScores})
                 user.socket.emit("START_AVIATOR", message)
             }
             this.startGame()
@@ -77,7 +99,7 @@ export class AviatorGame{
     }
 
     public getCurrentData(){
-        return JSON.stringify({currentRate: this.encryptAES(this._rate.toString()), maxRate: this.encryptAES(this._maxRate.toString())})
+        return JSON.stringify({currentRate: this.encryptAES(this._rate.toString()), maxRate: this.encryptAES(this._maxRate.toString()), lastScores: this._lastScores})
     }
 
     public getRemainingWaitingTime(){
@@ -118,6 +140,7 @@ export class AviatorGame{
         this._roomId = createId();
         delay(2000).then(() => {
             this._isRunning = false;
+            this._lastScores = [...this._lastScores.slice(0, 1), this.maxRate]
             this.initializeGame();
         })
     }
