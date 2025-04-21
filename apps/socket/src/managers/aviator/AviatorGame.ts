@@ -56,6 +56,7 @@ export class AviatorGame{
             user.socket.emit("AVIATOR_WAITING", data)
         }
         this._startTime = performance.now()
+        console.log(this._lastScores)
         setTimeout(() => {
             // const maxRate = (Math.random() * (100.00 - 1.01) + 1.01).toFixed(2);
             const rateString = this._maxRate.toString()
@@ -138,9 +139,11 @@ export class AviatorGame{
     private endGame(){
         this._biddings = new Map();
         this._roomId = createId();
-        delay(2000).then(() => {
+        delay(5000).then(() => {
             this._isRunning = false;
-            this._lastScores = [...this._lastScores.slice(0, 1), this.maxRate]
+            this._lastScores = [...this._lastScores.slice(1), this.maxRate];
+            console.log('Updating scores')
+            console.log(this._lastScores)
             this.initializeGame();
         })
     }
