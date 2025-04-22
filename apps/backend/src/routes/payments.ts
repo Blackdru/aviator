@@ -93,7 +93,7 @@ router.post('/create', authenticateToken,  async(req: UserRequest, res) => {
     const secret = process.env.RAZORPAY_SECRET || 'eb0oOIIO5da9NVCwSL5RHqMU';
     const generatedSignature = crypto.createHmac('sha256', secret).update(razorpay_order_id + '|' + razorpay_payment_id).digest('hex');
     if (generatedSignature !== razorpay_signature) {
-      return res.status(400).json({ message: 'Invalid signature. Payment verification failed', razorpay_order_id, razorpay_payment_id });
+      return res.status(400).json({ message: 'Invalid signature. Payment verification failed', rzId: `${razorpay_order_id}`, rpId: `${razorpay_payment_id}` });
     }
   
     try {
