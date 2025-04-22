@@ -1,7 +1,7 @@
 import {z} from 'zod';
 
 export const createWithdrawSchema = z.object({
-    amount: z.number().min(10, {message: "Enter amount greater than 10"}),
+    amount: z.number().min(1000, {message: "Minimum withdraw amount is 1000"}),
     withdrawType: z.enum(["Bank", "UPI", "Crypto"], {message: "Invalid withdraw method"}),
     username: z.string({message: "Invalid username"}),
     accountNumber: z.string().optional(),

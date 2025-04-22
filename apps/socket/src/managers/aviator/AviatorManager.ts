@@ -47,6 +47,7 @@ class AviatorManager{
 
     public addBid(user: User, amount: number){
         const userId = user.userId;
+        if(amount < 10) return;
         if(this.game.isRunning) return;
         const roomId = this.game.roomId
         const maxRate = this.game.maxRate;
