@@ -13,6 +13,7 @@ export interface Bid{
 
 class AviatorManager{
     private static instance: AviatorManager;
+    private queue: Map<string, boolean> = new Map();
     
     private game: AviatorGame;
     constructor(){
@@ -49,6 +50,10 @@ class AviatorManager{
         const userId = user.userId;
         if(amount < 10) return;
         if(this.game.isRunning) return;
+        if(this.queue.get(user.userId)) return
+        this.queue.set(user.userId, true);
+        const bid = this.game.biddings.get(user.userId);
+        if(bid) return;
         const roomId = this.game.roomId
         const maxRate = this.game.maxRate;
         prisma.$transaction(async(tx) => {
@@ -101,7 +106,8 @@ class AviatorManager{
 
             const bet: Bid = {userId, investedAmount: amount, cashedOut: false, betId}
             this.game.biddings.set(userId, bet)
-            user.socket.emit("AVIATOR_BID_SUCCESS")
+            user.socket.emit("AVIATOR_BID_SUCCESS");
+            this.queue.delete(user.userId);
 
         })
     }

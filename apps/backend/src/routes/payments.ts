@@ -56,7 +56,7 @@ router.post('/create', authenticateToken,  async(req: UserRequest, res) => {
             data: {
                 paymentId: order.id,
                 userId,
-                amount: Number(order.amount),
+                amount,
                 currency: order.currency,
             },
         });
@@ -97,12 +97,39 @@ router.post('/create', authenticateToken,  async(req: UserRequest, res) => {
     }
   
     try {
-      const updatedTransaction = await prisma.payments.update({
-        where: { paymentId: razorpay_order_id },
-        data: {
-          paymentStatus: "Success",
-        },
-      });
+      const updatedTransaction = await prisma.$transaction(async(tx) => {
+        const transaction = await tx.payments.update({
+          where: { paymentId: razorpay_order_id },
+          data: {
+            paymentStatus: "Success",
+          },
+        });
+        
+        const user = await tx.user.findUnique({
+          where: { userId: transaction.userId },
+          select: {wallet: {select: {walletId: true}}}
+        });
+        
+        if(!user){
+          return res.status(400).json({ message: 'User not found' });
+        }
+
+        if(!user.wallet){
+          return res.status(400).json({ message: 'Wallet not found' });
+        }
+
+        await tx.wallet.update({
+          where: {
+            walletId: user.wallet.walletId
+          },
+          data: {
+            balance: {
+              increment: transaction.amount
+            }
+          }
+        })
+        return transaction
+      })
   
       res.status(200).json({ message: 'Transaction updated successfully', transaction: updatedTransaction });
     } catch (error) {
