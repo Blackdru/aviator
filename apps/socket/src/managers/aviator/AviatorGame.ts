@@ -33,18 +33,21 @@ export class AviatorGame{
     private getCrashMultiplier() {
         const rand = Math.random();
       
-        if (rand < 0.7) {
-          // 70% chance for crash between 1.00 and 2.00
-          return parseFloat((Math.random() * 1 + 1).toFixed(2));
-        } else if (rand < 0.9) {
-          // 20% chance for crash between 2.01 and 5.00
-          return parseFloat((Math.random() * 2.99 + 2.01).toFixed(2));
-        } else if (rand < 0.98) {
-          // 8% chance for crash between 5.01 and 10.00
-          return parseFloat((Math.random() * 4.99 + 5.01).toFixed(2));
+        if (rand < 0.45) {
+            // 45% chance for crash between 1.01 and 1.30
+            return parseFloat((Math.random() * (1.30 - 1.01) + 1.01).toFixed(2));
+        } else if (rand < 0.80) {
+          // 30% chance for crash between 1.31 and 2.00
+          return parseFloat((Math.random() * (2.00 - 1.31) + 1.31).toFixed(2));
+        } else if (rand < 0.95) {
+          // 15% chance for crash between 2.01 and 5.00
+          return parseFloat((Math.random() * (5.00 - 2.01) + 2.01).toFixed(2));
+        } else if (rand < 0.99) {
+          // 4% chance for crash between 5.01 and 10.00
+          return parseFloat((Math.random() * (10.00 - 5.01) + 5.01).toFixed(2));
         } else {
-          // 2% chance for crash between 10.01 and 50.00
-          return parseFloat((Math.random() * 39.99 + 10.01).toFixed(2));
+          // 1% chance for crash between 10.01 and 50.00
+          return parseFloat((Math.random() * (50.00 - 10.01) + 10.01).toFixed(2));
         }
     }
       
@@ -52,7 +55,6 @@ export class AviatorGame{
     private initializeGame(){
         const data = this._waitingTime.toString();
         this._maxRate = this.getCrashMultiplier();
-        console.log(this.maxRate)
         this._rate = 1.00
         for(const user of this.players.values()){
             user.socket.emit("AVIATOR_WAITING", data)
