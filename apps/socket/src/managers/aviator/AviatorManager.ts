@@ -142,7 +142,7 @@ class AviatorManager{
                 }
             })
         });
-        const message = JSON.stringify({amount: winAmount});
+        const message = JSON.stringify({amount: winAmount.toFixed(2)});
         user.socket.emit("AVIATOR_CASHOUT_SUCCESS", message);
     }
 }
